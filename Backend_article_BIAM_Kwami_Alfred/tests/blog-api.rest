@@ -3,12 +3,22 @@
 @testEmail = admin@example.com
 @categoryName = Tech-{{$timestamp}}
 
+####################################
+# 1. HEALTH CHECK
+####################################
+
 ### Health check
+# Verifier que l'API est operationnelle
 GET {{baseUrl}}/health
 
-### Register
+
+####################################
+# 2. AUTHENTIFICATION
+####################################
+
+### Register - Creer un compte
 # @name register
-# Si l'utilisateur existe deja, l'API peut renvoyer 409.
+# Cree un nouvel utilisateur
 POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
@@ -18,8 +28,9 @@ Content-Type: application/json
   "password": "{{password}}"
 }
 
-### Login
+### Login - Se connecter
 # @name login
+# Retourne un token JWT
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
@@ -28,14 +39,17 @@ Content-Type: application/json
   "password": "{{password}}"
 }
 
-### Get all articles
-GET {{baseUrl}}/articles
+
+####################################
+# 3. CATEGORIES
+####################################
 
 ### Get all categories
 GET {{baseUrl}}/categories
 
 ### Add category
 # @name createCategory
+# Cree une nouvelle categorie
 POST {{baseUrl}}/categories
 Authorization: Bearer {{login.response.body.$.data.token}}
 Content-Type: application/json
@@ -44,46 +58,119 @@ Content-Type: application/json
   "name": "{{categoryName}}"
 }
 
+
+####################################
+# 4. ARTICLES
+####################################
+
+### Get all articles
+GET {{baseUrl}}/articles
+
 ### Create article
 # @name createArticle
+# Cree un nouvel article
 POST {{baseUrl}}/articles
 Authorization: Bearer {{login.response.body.$.data.token}}
 Content-Type: application/json
 
 {
   "title": "Premier article",
-  "content": "Contenu de demonstration",
+  "content": "Contenu de demonstration avec details",
   "categoryId": {{createCategory.response.body.$.data.id}}
 }
 
 ### Get article by id
+# Recupere un article specifique
 GET {{baseUrl}}/articles/{{createArticle.response.body.$.data.id}}
 
 ### Update article
+# Modifie un article existant
 PUT {{baseUrl}}/articles/{{createArticle.response.body.$.data.id}}
 Authorization: Bearer {{login.response.body.$.data.token}}
 Content-Type: application/json
 
 {
   "title": "Premier article modifie",
-  "content": "Contenu mis a jour",
+  "content": "Contenu mis a jour avec modifications",
   "categoryId": {{createCategory.response.body.$.data.id}}
 }
 
+
+####################################
+# 5. COMMENTAIRES
+####################################
+
 ### Add comment
 # @name createComment
+# Ajoute un commentaire public
 POST {{baseUrl}}/comments
 Content-Type: application/json
 
 {
   "articleId": {{createArticle.response.body.$.data.id}},
   "author": "Lecteur 1",
-  "content": "Article tres utile."
+  "content": "Article tres utile et bien explique."
+}
+
+### Add another comment
+# Ajoute un deuxieme commentaire
+POST {{baseUrl}}/comments
+Content-Type: application/json
+
+{
+  "articleId": {{createArticle.response.body.$.data.id}},
+  "author": "Lecteur 2",
+  "content": "J'ai beaucoup aime, merci pour l'explication."
 }
 
 ### Get comments by article
+# Recupere tous les commentaires d'un article
 GET {{baseUrl}}/comments/article/{{createArticle.response.body.$.data.id}}
 
+
+####################################
+# 6. SUPPRESSION - Nettoyage
+####################################
+
 ### Delete article
+# Supprime un article
 DELETE {{baseUrl}}/articles/{{createArticle.response.body.$.data.id}}
 Authorization: Bearer {{login.response.body.$.data.token}}
+
+
+####################################
+# NOTES D'UTILISATION
+####################################
+#
+# Variables automatiques:
+#  @baseUrl          - URL de base
+#  @password         - Mot de passe
+#  @testEmail        - Email
+#  @categoryName     - Nom categorie avec timestamp
+#
+# Variables capturees:
+#  login.response.body.$.data.token     - Token JWT
+#  createCategory.response.body.$.data.id  - ID categorie
+#  createArticle.response.body.$.data.id   - ID article
+#  createComment.response.body.$.data.id   - ID commentaire
+#
+# Authentification:
+#  - Bearer token requis pour articles/categories
+#  - Capture automatique apres login
+#  - Validite: 7 jours
+#
+# Ordre recommande:
+#  1. Health check
+#  2. Register
+#  3. Login
+#  4. Get categories
+#  5. Add category
+#  6. Create article
+#  7. Get all articles
+#  8. Get article by id
+#  9. Update article
+# 10. Add comment
+# 11. Get comments
+# 12. Delete article
+#
+####################################
