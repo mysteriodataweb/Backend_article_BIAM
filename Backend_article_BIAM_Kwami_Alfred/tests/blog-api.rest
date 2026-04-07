@@ -1,0 +1,89 @@
+@baseUrl = http://localhost:5000/api
+@password = Password123!
+@testEmail = admin@example.com
+@categoryName = Tech-{{$timestamp}}
+
+### Health check
+GET {{baseUrl}}/health
+
+### Register
+# @name register
+# Si l'utilisateur existe deja, l'API peut renvoyer 409.
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Admin Blog",
+  "email": "{{testEmail}}",
+  "password": "{{password}}"
+}
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{testEmail}}",
+  "password": "{{password}}"
+}
+
+### Get all articles
+GET {{baseUrl}}/articles
+
+### Get all categories
+GET {{baseUrl}}/categories
+
+### Add category
+# @name createCategory
+POST {{baseUrl}}/categories
+Authorization: Bearer {{login.response.body.$.data.token}}
+Content-Type: application/json
+
+{
+  "name": "{{categoryName}}"
+}
+
+### Create article
+# @name createArticle
+POST {{baseUrl}}/articles
+Authorization: Bearer {{login.response.body.$.data.token}}
+Content-Type: application/json
+
+{
+  "title": "Premier article",
+  "content": "Contenu de demonstration",
+  "categoryId": {{createCategory.response.body.$.data.id}}
+}
+
+### Get article by id
+GET {{baseUrl}}/articles/{{createArticle.response.body.$.data.id}}
+
+### Update article
+PUT {{baseUrl}}/articles/{{createArticle.response.body.$.data.id}}
+Authorization: Bearer {{login.response.body.$.data.token}}
+Content-Type: application/json
+
+{
+  "title": "Premier article modifie",
+  "content": "Contenu mis a jour",
+  "categoryId": {{createCategory.response.body.$.data.id}}
+}
+
+### Add comment
+# @name createComment
+POST {{baseUrl}}/comments
+Content-Type: application/json
+
+{
+  "articleId": {{createArticle.response.body.$.data.id}},
+  "author": "Lecteur 1",
+  "content": "Article tres utile."
+}
+
+### Get comments by article
+GET {{baseUrl}}/comments/article/{{createArticle.response.body.$.data.id}}
+
+### Delete article
+DELETE {{baseUrl}}/articles/{{createArticle.response.body.$.data.id}}
+Authorization: Bearer {{login.response.body.$.data.token}}
